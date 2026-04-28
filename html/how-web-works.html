@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>How the Web Works - Interactive Flow</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --accent: #22d3ee;
+      --accent-2: #a78bfa;
+      --ok: #34d399;
+      --warn: #f59e0b;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: radial-gradient(circle at top, #1f2937, var(--bg));
+      color: var(--text);
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      display: grid;
+      gap: 16px;
+    }
+
+    .header,
+    .panel {
+      background: rgba(17, 24, 39, 0.85);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 16px;
+      padding: 16px;
+      backdrop-filter: blur(6px);
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 1.5rem;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    button {
+      border: none;
+      border-radius: 999px;
+      padding: 10px 14px;
+      color: #0b1020;
+      font-weight: 700;
+      cursor: pointer;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    }
+
+    button.secondary {
+      background: #334155;
+      color: #e2e8f0;
+      font-weight: 600;
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .speed {
+      color: var(--muted);
+      font-size: 0.95rem;
+      margin-left: auto;
+    }
+
+    .viewport {
+      position: relative;
+      height: 360px;
+      overflow: hidden;
+      border-radius: 14px;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      background: linear-gradient(180deg, rgba(15, 23, 42, 0.7), rgba(2, 6, 23, 0.8));
+    }
+
+    .node {
+      position: absolute;
+      width: 170px;
+      padding: 10px;
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      text-align: center;
+      transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+      background: rgba(30, 41, 59, 0.9);
+    }
+
+    .node strong { display: block; font-size: 0.95rem; }
+    .node span { font-size: 0.8rem; color: var(--muted); }
+
+    .node.active {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(34, 211, 238, 0.3), 0 10px 30px rgba(34, 211, 238, 0.2);
+      transform: translateY(-2px);
+    }
+
+    #client { left: 40px; top: 140px; }
+    #dns { left: 280px; top: 40px; }
+    #server { right: 40px; top: 140px; }
+    #renderer { left: 280px; bottom: 30px; }
+
+    .path {
+      position: absolute;
+      border-top: 2px dashed rgba(148, 163, 184, 0.35);
+      transform-origin: left center;
+    }
+
+    .packet {
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--ok);
+      box-shadow: 0 0 15px rgba(52, 211, 153, 0.9);
+      opacity: 0;
+      transform: translate(-50%, -50%);
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 0.86rem;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 6px;
+    }
+
+    .step-card {
+      background: rgba(15, 23, 42, 0.75);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 12px;
+      padding: 12px;
+      line-height: 1.45;
+      min-height: 86px;
+    }
+
+    .step-title {
+      margin: 0 0 6px;
+      font-weight: 700;
+      color: #f8fafc;
+    }
+
+    .step-desc {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .progress {
+      margin-top: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(148, 163, 184, 0.2);
+      overflow: hidden;
+    }
+
+    .progress > div {
+      height: 100%;
+      width: 0;
+      background: linear-gradient(90deg, var(--accent), var(--ok));
+      transition: width 0.4s ease;
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <section class="header">
+      <h1>Interactive: How the Web Works</h1>
+      <p class="subtitle">Visual walkthrough from domain lookup to browser rendering. Use <strong>Play</strong> for auto animation or <strong>Next Step</strong> for classroom pacing.</p>
+    </section>
+
+    <section class="panel controls">
+      <button id="playBtn">▶ Play</button>
+      <button id="nextBtn" class="secondary">Next Step</button>
+      <button id="resetBtn" class="secondary">Reset</button>
+      <label class="speed">Speed
+        <input id="speed" type="range" min="0.5" max="2" step="0.25" value="1" />
+      </label>
+    </section>
+
+    <section class="panel">
+      <div class="viewport" id="viewport">
+        <div class="node" id="client"><strong>Client</strong><span>Browser + OS</span></div>
+        <div class="node" id="dns"><strong>DNS</strong><span>Domain → IP</span></div>
+        <div class="node" id="server"><strong>Web Server</strong><span>App + Static Assets</span></div>
+        <div class="node" id="renderer"><strong>Browser Engine</strong><span>Parse, Layout, Paint</span></div>
+
+        <div class="path" data-from="client" data-to="dns"></div>
+        <div class="path" data-from="dns" data-to="client"></div>
+        <div class="path" data-from="client" data-to="server"></div>
+        <div class="path" data-from="server" data-to="client"></div>
+        <div class="path" data-from="client" data-to="renderer"></div>
+
+        <div class="packet" id="packet"></div>
+      </div>
+
+      <div class="legend" style="margin-top:12px;">
+        <span><i class="dot" style="background: var(--ok)"></i>Message / packet movement</span>
+        <span><i class="dot" style="background: var(--accent)"></i>Active component</span>
+        <span><i class="dot" style="background: var(--warn)"></i>Rendering pipeline focus</span>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="step-card">
+        <p class="step-title" id="stepTitle">Step 1: DNS Resolution</p>
+        <p class="step-desc" id="stepDesc">Browser asks DNS to convert the domain name to an IP address.</p>
+      </div>
+      <div class="progress"><div id="progressBar"></div></div>
+    </section>
+  </main>
+
+  <script>
+    const nodes = {
+      client: document.getElementById("client"),
+      dns: document.getElementById("dns"),
+      server: document.getElementById("server"),
+      renderer: document.getElementById("renderer")
+    };
+
+    const steps = [
+      {
+        title: "Step 1: Domain to IP via DNS",
+        description: "User enters a URL. Browser/OS resolver queries DNS and gets the server IP address.",
+        from: "client",
+        to: "dns",
+        highlight: ["client", "dns"]
+      },
+      {
+        title: "Step 2: TCP Handshake",
+        description: "Client and server establish connection with SYN → SYN-ACK → ACK before data transfer.",
+        from: "client",
+        to: "server",
+        highlight: ["client", "server"],
+        repeat: 3
+      },
+      {
+        title: "Step 3: HTTP Request",
+        description: "Browser sends HTTP request (method, path, headers, optional body) to server.",
+        from: "client",
+        to: "server",
+        highlight: ["client", "server"]
+      },
+      {
+        title: "Step 4: Server Response + Browser Rendering",
+        description: "Server returns response. Browser parses HTML/CSS/JS, builds DOM/CSSOM, layouts, paints, and displays.",
+        from: "server",
+        to: "client",
+        thenToRenderer: true,
+        highlight: ["server", "client", "renderer"]
+      }
+    ];
+
+    const packet = document.getElementById("packet");
+    const stepTitle = document.getElementById("stepTitle");
+    const stepDesc = document.getElementById("stepDesc");
+    const progressBar = document.getElementById("progressBar");
+    const playBtn = document.getElementById("playBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const speedInput = document.getElementById("speed");
+
+    let currentStep = 0;
+    let isPlaying = false;
+    let animationTimer;
+
+    function center(el) {
+      const rect = el.getBoundingClientRect();
+      const parent = document.getElementById("viewport").getBoundingClientRect();
+      return {
+        x: rect.left - parent.left + rect.width / 2,
+        y: rect.top - parent.top + rect.height / 2
+      };
+    }
+
+    function drawPaths() {
+      document.querySelectorAll(".path").forEach(path => {
+        const from = nodes[path.dataset.from];
+        const to = nodes[path.dataset.to];
+        const p1 = center(from);
+        const p2 = center(to);
+        const dx = p2.x - p1.x;
+        const dy = p2.y - p1.y;
+        const len = Math.sqrt(dx * dx + dy * dy);
+        const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+
+        path.style.left = `${p1.x}px`;
+        path.style.top = `${p1.y}px`;
+        path.style.width = `${len}px`;
+        path.style.transform = `rotate(${angle}deg)`;
+      });
+    }
+
+    function clearHighlights() {
+      Object.values(nodes).forEach(n => n.classList.remove("active"));
+    }
+
+    function setStepMeta(stepIndex) {
+      const step = steps[stepIndex];
+      stepTitle.textContent = step.title;
+      stepDesc.textContent = step.description;
+      progressBar.style.width = `${((stepIndex + 1) / steps.length) * 100}%`;
+    }
+
+    function movePacket(fromKey, toKey, duration = 900) {
+      return new Promise(resolve => {
+        const p1 = center(nodes[fromKey]);
+        const p2 = center(nodes[toKey]);
+        const start = performance.now();
+        packet.style.opacity = 1;
+
+        function frame(now) {
+          const t = Math.min((now - start) / duration, 1);
+          const x = p1.x + (p2.x - p1.x) * t;
+          const y = p1.y + (p2.y - p1.y) * t;
+          packet.style.left = `${x}px`;
+          packet.style.top = `${y}px`;
+          if (t < 1) requestAnimationFrame(frame);
+          else resolve();
+        }
+
+        requestAnimationFrame(frame);
+      });
+    }
+
+    async function runStep(index) {
+      const step = steps[index];
+      clearHighlights();
+      step.highlight.forEach(k => nodes[k].classList.add("active"));
+      setStepMeta(index);
+
+      const speed = Number(speedInput.value);
+      const baseDuration = 1000 / speed;
+
+      if (step.repeat) {
+        for (let i = 0; i < step.repeat; i++) {
+          await movePacket("client", "server", baseDuration * 0.9);
+          await movePacket("server", "client", baseDuration * 0.9);
+        }
+      } else {
+        await movePacket(step.from, step.to, baseDuration);
+      }
+
+      if (step.thenToRenderer) {
+        await movePacket("client", "renderer", baseDuration * 0.8);
+      }
+
+      packet.style.opacity = 0;
+    }
+
+    async function playAll() {
+      if (isPlaying) return;
+      isPlaying = true;
+      playBtn.textContent = "⏸ Playing";
+      nextBtn.disabled = true;
+
+      for (; currentStep < steps.length; currentStep++) {
+        await runStep(currentStep);
+        await new Promise(r => animationTimer = setTimeout(r, 500 / Number(speedInput.value)));
+      }
+
+      isPlaying = false;
+      playBtn.textContent = "▶ Play";
+      nextBtn.disabled = false;
+    }
+
+    async function nextStep() {
+      if (isPlaying || currentStep >= steps.length) return;
+      await runStep(currentStep);
+      currentStep++;
+    }
+
+    function reset() {
+      clearTimeout(animationTimer);
+      isPlaying = false;
+      currentStep = 0;
+      packet.style.opacity = 0;
+      clearHighlights();
+      setStepMeta(0);
+      progressBar.style.width = "0%";
+      playBtn.textContent = "▶ Play";
+      nextBtn.disabled = false;
+    }
+
+    playBtn.addEventListener("click", playAll);
+    nextBtn.addEventListener("click", nextStep);
+    resetBtn.addEventListener("click", reset);
+    window.addEventListener("resize", drawPaths);
+
+    drawPaths();
+    reset();
+  </script>
+</body>
+</html>
