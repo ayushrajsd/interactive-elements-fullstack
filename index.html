@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Interactive Elements for Learners</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <h1>Interactive Elements Lab</h1>
+      <p>Visual-first explainers for complex full-stack topics.</p>
+    </header>
+
+    <main class="app-shell">
+      <aside class="module-panel">
+        <h2>Available visualizations</h2>
+        <div id="catalogue" class="catalogue"></div>
+      </aside>
+
+      <section class="concept-panel">
+        <div class="concept-header">
+          <h2>Concept: How the Web Works</h2>
+          <p>Client → DNS → Server → Browser rendering pipeline, step-by-step.</p>
+        </div>
+
+        <div class="controls">
+          <button id="startBtn">Start slow animation</button>
+          <button id="pauseBtn">Pause</button>
+          <button id="nextBtn">Next step</button>
+          <button id="resetBtn">Reset</button>
+          <label>Speed <input id="speedRange" type="range" min="1" max="5" value="2" /></label>
+        </div>
+
+        <div class="visual-layout">
+          <div class="flow-column">
+            <div class="network-map" id="networkMap">
+              <div class="node" id="node-client">Client / Browser</div>
+              <div class="node" id="node-dns">DNS Resolver</div>
+              <div class="node" id="node-server">Web Server</div>
+              <div class="node" id="node-render">Render Engine</div>
+
+              <div class="link link-client-dns"></div>
+              <div class="link link-dns-server"></div>
+              <div class="link link-server-client"></div>
+              <div class="link link-client-render"></div>
+
+              <div id="packet" class="packet hidden">REQ</div>
+            </div>
+            <div id="stepLabel" class="step-label">Press Start to animate.</div>
+          </div>
+
+          <div class="detail-column">
+            <h3 id="stepTitle">Press “Start slow animation”</h3>
+            <p id="stepDescription">Details for each phase will appear here.</p>
+            <ul id="stepBullets"></ul>
+            <div id="detailDiagram" class="detail-diagram"></div>
+            <div class="meta"><strong>Current phase:</strong> <span id="phaseIndex">0 / 8</span></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
