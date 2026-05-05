@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Interactive Elements for Learners</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <h1>Interactive Elements Lab</h1>
+      <p>Visual-first explainers for complex full-stack topics.</p>
+    </header>
+
+    <main class="app-shell">
+      <aside class="module-panel">
+        <h2>Modules</h2>
+        <ul>
+          <li><button class="module-chip active">HTML / CSS</button></li>
+          <li><button class="module-chip active">JavaScript</button></li>
+          <li><button class="module-chip">React</button></li>
+          <li><button class="module-chip">MERN</button></li>
+        </ul>
+        <p class="hint">Start with one confusing concept per module and turn it into a visual simulation.</p>
+      </aside>
+
+      <section class="concept-panel">
+        <div class="concept-header">
+          <h2>Concept: How the Web Works</h2>
+          <p>
+            Type URL → DNS lookup → TCP/TLS handshake → HTTP request/response → Browser rendering pipeline.
+          </p>
+        </div>
+
+        <div class="controls">
+          <button id="startBtn">Start slow animation</button>
+          <button id="pauseBtn">Pause</button>
+          <button id="nextBtn">Next step</button>
+          <button id="resetBtn">Reset</button>
+          <label>
+            Speed
+            <input id="speedRange" type="range" min="1" max="5" value="2" />
+          </label>
+        </div>
+
+        <div class="visual-layout">
+          <div class="flow-column">
+            <div id="flowTrack" class="flow-track"></div>
+            <div id="packet" class="packet hidden">REQ</div>
+          </div>
+
+          <div class="detail-column">
+            <h3 id="stepTitle">Press “Start slow animation”</h3>
+            <p id="stepDescription">Details for each phase will appear here.</p>
+            <ul id="stepBullets"></ul>
+            <div class="meta">
+              <strong>Current phase:</strong> <span id="phaseIndex">0 / 12</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
