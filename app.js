@@ -1,212 +1,166 @@
+const moduleTopics = {
+  "HTML / CSS": ["How the Web Works"],
+  JavaScript: ["How the Web Works"],
+  React: [],
+  MERN: []
+};
+
 const steps = [
   {
-    title: "1) User enters URL in the browser",
-    short: "Enter URL",
-    bullets: [
-      "Browser parses protocol, domain, path, query.",
-      "Checks browser cache and Service Worker first.",
-      "If valid fresh cache exists, network work may be skipped."
-    ]
+    title: "1) User enters URL",
+    label: "Client starts request",
+    activeNodes: ["client"],
+    activeLinks: [],
+    packet: { text: "REQ", x: 95, y: 83 },
+    bullets: ["Browser parses URL and checks local cache/service worker."]
   },
   {
-    title: "2) DNS lookup begins",
-    short: "Browser/OS cache",
-    bullets: [
-      "DNS cache hierarchy: browser → OS → router → ISP resolver.",
-      "If IP found in cache and TTL not expired, return quickly."
-    ]
+    title: "2) DNS lookup",
+    label: "Client asks DNS for IP",
+    activeNodes: ["client", "dns"],
+    activeLinks: ["client-dns"],
+    packet: { text: "REQ", x: 270, y: 83 },
+    bullets: ["Cache miss triggers recursive DNS via resolver."]
   },
   {
-    title: "3) Recursive DNS resolution if cache miss",
-    short: "Root/TLD/Auth DNS",
-    bullets: [
-      "Resolver asks root name servers, then TLD servers (.com, .org).",
-      "TLD points to authoritative name server for domain.",
-      "Authoritative DNS returns A/AAAA record (IP address)."
-    ]
+    title: "3) DNS response",
+    label: "DNS returns destination IP",
+    activeNodes: ["client", "dns"],
+    activeLinks: ["client-dns"],
+    packet: { text: "IP", x: 95, y: 83 },
+    bullets: ["Client now knows server IP address."]
   },
   {
-    title: "4) TCP handshake to server IP",
-    short: "TCP SYN/SYN-ACK/ACK",
-    bullets: [
-      "Client sends SYN.",
-      "Server replies SYN-ACK.",
-      "Client confirms with ACK; connection established."
-    ]
+    title: "4) TCP/TLS handshake",
+    label: "Client establishes secure channel",
+    activeNodes: ["client", "server"],
+    activeLinks: ["dns-server"],
+    packet: { text: "SYN", x: 270, y: 255 },
+    bullets: ["SYN/SYN-ACK/ACK then TLS certificate + key exchange."]
   },
   {
-    title: "5) TLS handshake for HTTPS",
-    short: "TLS security",
-    bullets: [
-      "Certificate is sent and validated.",
-      "Session keys are negotiated.",
-      "Encrypted channel is ready."
-    ]
+    title: "5) HTTP request to server",
+    label: "Request reaches app infra",
+    activeNodes: ["client", "server"],
+    activeLinks: ["dns-server"],
+    packet: { text: "GET", x: 270, y: 255 },
+    bullets: ["CDN/LB/App server receives request and processes it."]
   },
   {
-    title: "6) HTTP request sent",
-    short: "HTTP request",
-    bullets: [
-      "Request line + headers + optional body are sent.",
-      "Cookies/auth headers and caching headers may be included."
-    ]
+    title: "6) HTTP response back",
+    label: "Server returns HTML/CSS/JS",
+    activeNodes: ["client", "server"],
+    activeLinks: ["server-client"],
+    packet: { text: "RES", x: 95, y: 255 },
+    bullets: ["Status, headers, body returned and maybe cached."]
   },
   {
-    title: "7) Request reaches CDN / load balancer / app",
-    short: "Infra routing",
-    bullets: [
-      "Edge/CDN may serve static content directly.",
-      "Otherwise load balancer forwards to an app server instance."
-    ]
+    title: "7) Browser render pipeline",
+    label: "Client builds DOM/CSSOM",
+    activeNodes: ["client", "render"],
+    activeLinks: ["client-render"],
+    packet: { text: "DOM", x: 95, y: 255 },
+    bullets: ["DOM + CSSOM → render tree → layout → paint → composite."]
   },
   {
-    title: "8) Backend processing",
-    short: "Server logic",
-    bullets: [
-      "Server runs business logic.",
-      "May query DB/cache/microservices.",
-      "Builds response payload (HTML/JSON/assets)."
-    ]
-  },
-  {
-    title: "9) HTTP response returned",
-    short: "HTTP response",
-    bullets: [
-      "Status code, headers, body returned to client.",
-      "Compression (gzip/br) and cache headers may be applied."
-    ]
-  },
-  {
-    title: "10) Browser parses HTML -> DOM",
-    short: "DOM build",
-    bullets: [
-      "HTML parser incrementally builds DOM tree.",
-      "Parser may block on synchronous scripts."
-    ]
-  },
-  {
-    title: "11) CSSOM, render tree, layout, paint, composite",
-    short: "Render pipeline",
-    bullets: [
-      "CSS parsed into CSSOM.",
-      "DOM + CSSOM -> render tree.",
-      "Layout computes geometry, paint draws pixels, compositor combines layers."
-    ]
-  },
-  {
-    title: "12) JS hydration / interactivity / subsequent requests",
-    short: "Interactive app",
-    bullets: [
-      "JavaScript attaches events and updates UI.",
-      "SPA frameworks hydrate existing markup.",
-      "User actions trigger fetch/XHR/WebSocket flows again."
-    ]
+    title: "8) Interactivity/hydration",
+    label: "App becomes interactive",
+    activeNodes: ["render", "client"],
+    activeLinks: ["client-render"],
+    packet: { text: "JS", x: 95, y: 83 },
+    bullets: ["JS hydrates UI and future user actions trigger new requests."]
   }
 ];
 
-const flowTrack = document.getElementById("flowTrack");
+const nodeEls = {
+  client: document.getElementById("node-client"),
+  dns: document.getElementById("node-dns"),
+  server: document.getElementById("node-server"),
+  render: document.getElementById("node-render")
+};
+const linkEls = {
+  "client-dns": document.querySelector(".link-client-dns"),
+  "dns-server": document.querySelector(".link-dns-server"),
+  "server-client": document.querySelector(".link-server-client"),
+  "client-render": document.querySelector(".link-client-render")
+};
 const packet = document.getElementById("packet");
 const stepTitle = document.getElementById("stepTitle");
 const stepDescription = document.getElementById("stepDescription");
 const stepBullets = document.getElementById("stepBullets");
 const phaseIndex = document.getElementById("phaseIndex");
+const stepLabel = document.getElementById("stepLabel");
+const catalogue = document.getElementById("catalogue");
 
-const startBtn = document.getElementById("startBtn");
-const pauseBtn = document.getElementById("pauseBtn");
-const nextBtn = document.getElementById("nextBtn");
-const resetBtn = document.getElementById("resetBtn");
-const speedRange = document.getElementById("speedRange");
+let idx = -1;
+let timer;
 
-let currentStep = -1;
-let timer = null;
-let running = false;
-
-function buildFlow() {
-  flowTrack.innerHTML = "";
-  steps.forEach((step, index) => {
-    const node = document.createElement("div");
-    node.className = "step-node";
-    node.dataset.index = String(index);
-    node.textContent = step.short;
-    flowTrack.appendChild(node);
-  });
+function renderCatalogue() {
+  const entries = Object.entries(moduleTopics).filter(([, topics]) => topics.length > 0);
+  catalogue.innerHTML = entries
+    .map(
+      ([module, topics]) => `
+      <div class="module-group">
+        <h3>${module}</h3>
+        <div>${topics.map((topic) => `<span class="topic-pill">${topic}</span>`).join("")}</div>
+      </div>`
+    )
+    .join("");
 }
 
-function renderStep(index) {
-  const safeIndex = Math.max(0, Math.min(index, steps.length - 1));
-  const current = steps[safeIndex];
+function renderStep(i) {
+  const s = steps[i];
+  Object.values(nodeEls).forEach((el) => el.classList.remove("active"));
+  Object.values(linkEls).forEach((el) => el.classList.remove("active"));
+  s.activeNodes.forEach((n) => nodeEls[n].classList.add("active"));
+  s.activeLinks.forEach((l) => linkEls[l].classList.add("active"));
 
-  document.querySelectorAll(".step-node").forEach((node, i) => {
-    node.classList.toggle("active", i === safeIndex);
-    node.classList.toggle("done", i < safeIndex);
-  });
-
-  stepTitle.textContent = current.title;
-  stepDescription.textContent = "What is happening right now:";
-  stepBullets.innerHTML = current.bullets.map((x) => `<li>${x}</li>`).join("");
-  phaseIndex.textContent = `${safeIndex + 1} / ${steps.length}`;
   packet.classList.remove("hidden");
-  packet.style.transform = `translateY(${safeIndex * 54}px)`;
+  packet.textContent = s.packet.text;
+  packet.style.left = `${s.packet.x}px`;
+  packet.style.top = `${s.packet.y}px`;
 
-  if (safeIndex >= 8) {
-    packet.textContent = "RES";
-  } else {
-    packet.textContent = "REQ";
-  }
+  stepTitle.textContent = s.title;
+  stepDescription.textContent = "What is happening right now:";
+  stepBullets.innerHTML = s.bullets.map((b) => `<li>${b}</li>`).join("");
+  phaseIndex.textContent = `${i + 1} / ${steps.length}`;
+  stepLabel.textContent = s.label;
 }
 
-function nextStep() {
-  if (currentStep < steps.length - 1) {
-    currentStep += 1;
-    renderStep(currentStep);
+function next() {
+  if (idx < steps.length - 1) {
+    idx += 1;
+    renderStep(idx);
   } else {
-    stopAnimation();
-  }
-}
-
-function stopAnimation() {
-  running = false;
-  if (timer) {
     clearInterval(timer);
-    timer = null;
   }
 }
 
-function startAnimation() {
-  stopAnimation();
-  running = true;
-  if (currentStep >= steps.length - 1) {
-    currentStep = -1;
-  }
-
-  const speed = Number(speedRange.value);
-  const delay = 2500 - speed * 350;
-
-  timer = setInterval(() => {
-    if (!running) return;
-    nextStep();
-  }, delay);
-
-  nextStep();
+function start() {
+  clearInterval(timer);
+  if (idx >= steps.length - 1) idx = -1;
+  const delay = 2600 - Number(document.getElementById("speedRange").value) * 350;
+  timer = setInterval(next, delay);
+  next();
 }
 
-startBtn.addEventListener("click", startAnimation);
-pauseBtn.addEventListener("click", stopAnimation);
-nextBtn.addEventListener("click", () => {
-  stopAnimation();
-  nextStep();
+document.getElementById("startBtn").addEventListener("click", start);
+document.getElementById("pauseBtn").addEventListener("click", () => clearInterval(timer));
+document.getElementById("nextBtn").addEventListener("click", () => {
+  clearInterval(timer);
+  next();
 });
-resetBtn.addEventListener("click", () => {
-  stopAnimation();
-  currentStep = -1;
+document.getElementById("resetBtn").addEventListener("click", () => {
+  clearInterval(timer);
+  idx = -1;
+  Object.values(nodeEls).forEach((el) => el.classList.remove("active"));
+  Object.values(linkEls).forEach((el) => el.classList.remove("active"));
   packet.classList.add("hidden");
-  document.querySelectorAll(".step-node").forEach((node) => {
-    node.classList.remove("active", "done");
-  });
   stepTitle.textContent = 'Press “Start slow animation”';
   stepDescription.textContent = "Details for each phase will appear here.";
   stepBullets.innerHTML = "";
   phaseIndex.textContent = `0 / ${steps.length}`;
+  stepLabel.textContent = "Press Start to animate.";
 });
 
-buildFlow();
+renderCatalogue();

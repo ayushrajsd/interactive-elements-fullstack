@@ -14,22 +14,14 @@
 
     <main class="app-shell">
       <aside class="module-panel">
-        <h2>Modules</h2>
-        <ul>
-          <li><button class="module-chip active">HTML / CSS</button></li>
-          <li><button class="module-chip active">JavaScript</button></li>
-          <li><button class="module-chip">React</button></li>
-          <li><button class="module-chip">MERN</button></li>
-        </ul>
-        <p class="hint">Start with one confusing concept per module and turn it into a visual simulation.</p>
+        <h2>Available visualizations</h2>
+        <div id="catalogue" class="catalogue"></div>
       </aside>
 
       <section class="concept-panel">
         <div class="concept-header">
           <h2>Concept: How the Web Works</h2>
-          <p>
-            Type URL → DNS lookup → TCP/TLS handshake → HTTP request/response → Browser rendering pipeline.
-          </p>
+          <p>Client → DNS → Server → Browser rendering pipeline, step-by-step.</p>
         </div>
 
         <div class="controls">
@@ -37,25 +29,32 @@
           <button id="pauseBtn">Pause</button>
           <button id="nextBtn">Next step</button>
           <button id="resetBtn">Reset</button>
-          <label>
-            Speed
-            <input id="speedRange" type="range" min="1" max="5" value="2" />
-          </label>
+          <label>Speed <input id="speedRange" type="range" min="1" max="5" value="2" /></label>
         </div>
 
         <div class="visual-layout">
           <div class="flow-column">
-            <div id="flowTrack" class="flow-track"></div>
-            <div id="packet" class="packet hidden">REQ</div>
+            <div class="network-map" id="networkMap">
+              <div class="node" id="node-client">Client / Browser</div>
+              <div class="node" id="node-dns">DNS Resolver</div>
+              <div class="node" id="node-server">Web Server</div>
+              <div class="node" id="node-render">Render Engine</div>
+
+              <div class="link link-client-dns"></div>
+              <div class="link link-dns-server"></div>
+              <div class="link link-server-client"></div>
+              <div class="link link-client-render"></div>
+
+              <div id="packet" class="packet hidden">REQ</div>
+            </div>
+            <div id="stepLabel" class="step-label">Press Start to animate.</div>
           </div>
 
           <div class="detail-column">
             <h3 id="stepTitle">Press “Start slow animation”</h3>
             <p id="stepDescription">Details for each phase will appear here.</p>
             <ul id="stepBullets"></ul>
-            <div class="meta">
-              <strong>Current phase:</strong> <span id="phaseIndex">0 / 12</span>
-            </div>
+            <div class="meta"><strong>Current phase:</strong> <span id="phaseIndex">0 / 8</span></div>
           </div>
         </div>
       </section>
