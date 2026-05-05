@@ -71,3 +71,12 @@ body {
   .app-shell,.visual-layout { grid-template-columns: 1fr; }
   .network-map { overflow-x: auto; }
 }
+
+.detail-diagram { margin: 0.8rem 0; }
+.mini-diagram { border: 1px solid #334155; border-radius: 8px; padding: 0.65rem; background: #0b1a33; }
+.mini-diagram h4 { margin: 0 0 0.45rem; font-size: 0.95rem; color: #bfdbfe; }
+.flow-row, .arrow-chain { display:flex; flex-wrap:wrap; gap:0.4rem; }
+.flow-row span, .arrow-chain span { border:1px solid #475569; border-radius:6px; padding:0.2rem 0.45rem; background:#081224; }
+.arrow-chain span:not(:last-child)::after { content:'→'; margin-left:0.45rem; color:#7dd3fc; }
+.stack { display:grid; gap:0.35rem; }
+.stack div, .line-diagram div { border-left:2px solid #0ea5e9; padding-left:0.5rem; color:#dbeafe; }
